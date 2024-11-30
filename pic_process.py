@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import os
 
 
-
 ## load images path
 pircture_root = "myPicture"
 image_paths = []
@@ -40,8 +39,7 @@ def process_image_by_batch(img_path, size) :
                     data.append(img.flatten()) 
         yield np.array(data)
         
-        
-   
+  
 # set picture patch size    
 batch_size = 1000
 
@@ -60,17 +58,61 @@ processed_data = np.vstack(processed_data)
 kmeans = KMeans(n_clusters = cluster_num, random_state = 0)
 cluster_type = kmeans.fit_predict(processed_data)
 
+# Define name of clusters
+cluster_names = {
+    0: "aloevera",
+    1: "banana",
+    2: "bilimbi",
+    3: "cantaloupe",
+    4: "cassava",
+    5: "coconut",
+    6: "corn",
+    7: "cucumber",
+    8: "curcuma",
+    9: "eggplant",
+    10: "galangal",
+    11: "ginger",
+    12: "guava",
+    13: "kale",
+    14: "longbeans",
+    15: "mango",
+    16: "melon",
+    17: "orange",
+    18: "paddy",
+    19: "papaya",
+    20: "peperchili",
+    21: "pineapple",
+    22: "pomelo",
+    23: "shallot",
+    24: "soybeans",
+    25: "spinach",
+    26: "sweetpotatoes",
+    27: "tobacco",
+    28: "waterapple",
+    29: "watermelon"
+}
+
+cluster_id = np.unique(cluster_type)
+
+## data visualization
+# create a graph with size
+plt.figure(figsize=(16, 12))
+
 # reduce dimension to 2D
 pca = PCA(n_components=2)
 data_2D = pca.fit_transform(processed_data)
 
-# data visualization
-plt.figure(figsize=(8, 6))
-plt.scatter(data_2D[:, 0], data_2D[:, 1], c = cluster_type, cmap = 'viridis', s = 10)
+# draw each cluster
+for cluster in cluster_id:
+    cluster_points = data_2D[cluster_type == cluster]
+    cluster_label = cluster_names.get(cluster, f"Cluster {cluster}")
+    plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label = cluster_label, s = 5)
+
+# draw graph
 plt.title("K-Means Clustering of Images")
 plt.xlabel("PCA 1")
 plt.ylabel("PCA 2")
-plt.colorbar(label = "Cluster")
+plt.legend(title="Cluster Names", loc="upper right")
 plt.show()
 
 
