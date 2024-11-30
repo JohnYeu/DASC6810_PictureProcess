@@ -5,38 +5,72 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import os
 
-# Step 1: load and process data
-def preprocess_image(image_path, size=(128, 128)):
-    img = cv2.imread(image_path)  # read image
-    img = cv2.resize(img, size)  # resize
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # change to RGB
-    return img.flatten()  # flatten into a one-dimensional feature
 
-# load image path
-categories = ["aloevera", "banana", "watermelon"]
+
+## load images path
+pircture_root = "myPicture"
 image_paths = []
-for category in categories:
-    for i in range(1, 100): 
-        image_paths.append(f"picture/{category}{i}.jpg")
+for root, dirs, files in os.walk(pircture_root):
+    for file in files:
+        if file.lower().endswith(('.jpg')): 
+            image_paths.append(os.path.join(root, file)) 
 
-# check image path 
+print(f"Total images found: {len(image_paths)}")
+
+## check image path 
 for path in image_paths:
     if not os.path.exists(path):
         print(f"path not exist: {path}")
         
-data = np.array([preprocess_image(path) for path in image_paths])  # Convert images to feature matrix
+## process image by batches
+# define function for process image by batches
+def process_image_by_batch(img_path, size) :  
+    for i in range(0, len(img_path), size):
+        # get one batch of images
+        batch = img_path[i:i + size]   
+        
+        # used for saving current batch
+        data = []
+        for path in batch:
+                # process each image
+                img = cv2.imread(path)  
+                if img is not None:
+                    img = cv2.resize(img, (128, 128))  
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  
+                    data.append(img.flatten()) 
+        yield np.array(data)
+        
+        
+   
+# set picture patch size    
+batch_size = 1000
 
-# Step 2: K-Means clusters
-kmeans = KMeans(n_clusters=3, random_state=0)  # assume 3 clusters
-labels = kmeans.fit_predict(data)
+# set number of cluster
+cluster_num = 30
 
-# Step 3:  Data visualization
-pca = PCA(n_components=2)  # Reduce dimensions to 2D
-reduced_data = pca.fit_transform(data)
-plt.scatter(reduced_data[:, 0], reduced_data[:, 1], c=labels, cmap='viridis')
-plt.title("K-Means Clustering of Plants")
+# save all data after processing by batches
+processed_data = []
+
+# process data
+for batch in process_image_by_batch(image_paths, batch_size):
+    processed_data.append(batch)
+processed_data = np.vstack(processed_data)
+
+# k-mean clusters
+kmeans = KMeans(n_clusters = cluster_num, random_state = 0)
+cluster_type = kmeans.fit_predict(processed_data)
+
+# reduce dimension to 2D
+pca = PCA(n_components=2)
+data_2D = pca.fit_transform(processed_data)
+
+# data visualization
+plt.figure(figsize=(8, 6))
+plt.scatter(data_2D[:, 0], data_2D[:, 1], c = cluster_type, cmap = 'viridis', s = 10)
+plt.title("K-Means Clustering of Images")
 plt.xlabel("PCA 1")
 plt.ylabel("PCA 2")
-plt.colorbar(label='Cluster')
+plt.colorbar(label = "Cluster")
 plt.show()
+
 
