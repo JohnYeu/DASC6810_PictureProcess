@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import os
-
+from joblib import dump
 
 ## load images path
 pircture_root = "myPicture"
@@ -114,5 +114,9 @@ plt.xlabel("PCA 1")
 plt.ylabel("PCA 2")
 plt.legend(title="Cluster Names", loc="upper right")
 plt.show()
+
+## save model for prediction
+dump(pca, "bio_image_pcaModel.joblib")
+dump(kmeans, "bio_image_kmeansModel.joblib")
 
 
