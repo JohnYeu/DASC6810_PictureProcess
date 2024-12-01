@@ -30,7 +30,8 @@ def process_image_by_batch(img_path, size) :
 
 if __name__ == "__main__":
     ## load images path
-    pircture_root = "myPicture"
+    current_dir = os.getcwd()
+    pircture_root = os.path.join(current_dir, "pictures-train")
     image_paths = []
     for root, dirs, files in os.walk(pircture_root):
         for file in files:
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     batch_size = 1000
 
     # set number of cluster
-    cluster_num = 6
+    cluster_num = 7
 
     # save all data after processing by batches
     processed_data = []
@@ -65,14 +66,29 @@ if __name__ == "__main__":
     # Define name of clusters
     cluster_names = {}
     for cluster in range(cluster_num):
-        cluster_center = kmeans.cluster_centers_[cluster]
-        distances = np.linalg.norm(processed_data - cluster_center, axis = 1)
-        closest_image_index = np.argmin(distances[cluster_type == cluster])
-        closest_image_path = image_paths[np.where(cluster_type == cluster)[0][closest_image_index]]
-        folder_name = os.path.basename(os.path.dirname(closest_image_path))
-        cluster_names[cluster] = folder_name
+        indices_for_this_cluster = np.where(cluster_type == cluster)[0]
+        images_paths_for_this_cluster = [image_paths[idx] for idx in indices_for_this_cluster]
+        plant_name_count_dic = {}
+        for image_path in images_paths_for_this_cluster:
+            plant_name = os.path.basename(os.path.dirname(image_path))
+            if plant_name in plant_name_count_dic:
+                plant_name_count_dic[plant_name] += 1
+            else:
+                plant_name_count_dic[plant_name] = 1
+        name_for_this_cluster = max(plant_name_count_dic, key = plant_name_count_dic.get)
+        cluster_names[cluster] = name_for_this_cluster
 
-    # check cluster names
+        # cluster_center = kmeans.cluster_centers_[cluster]
+        # distances = np.linalg.norm(processed_data - cluster_center, axis = 1)
+        # closest_image_index = np.argmin(distances[cluster_type == cluster])
+        # images_indices_for_this_cluster = np.where(cluster_type == cluster)[0]
+        # images_of_this_cluster = [image_paths[idx] for idx in images_indices_for_this_cluster]
+        # closest_image_path = images_of_this_cluster[closest_image_index]
+        # folder_name = os.path.basename(os.path.dirname(closest_image_path))
+        # cluster_names[cluster] = folder_name
+
+
+  # check cluster names
     print("Cluster Names:")
     for cluster_id, name in cluster_names.items():
         print(f"Cluster {cluster_id}: {name}")
@@ -106,5 +122,4 @@ if __name__ == "__main__":
     ## save model for prediction
     dump(pca, "bio_image_pcaModel.joblib")
     dump(kmeans, "bio_image_kmeansModel.joblib")
-
 

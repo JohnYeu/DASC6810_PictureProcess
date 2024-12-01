@@ -22,7 +22,8 @@ if __name__ == "__main__":
         cluster_names = json.load(f)
     
     ## load images path
-    pircture_root = "testPicture"
+    current_dir = os.getcwd()
+    picture_root = os.path.join(current_dir, "pictures-test")
     image_paths = []
     for root, dirs, files in os.walk(pircture_root):
         for file in files:
