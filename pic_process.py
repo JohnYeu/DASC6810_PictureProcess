@@ -22,7 +22,7 @@ def process_image_by_batch(img_path, size) :
                 # process each image
                 img = cv2.imread(path)  
                 if img is not None:
-                    img = cv2.resize(img, (128, 128))  
+                    img = cv2.resize(img, (224, 224))  
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  
                     data.append(img.flatten()) 
         yield np.array(data)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     batch_size = 1000
 
     # set number of cluster
-    cluster_num = 10
+    cluster_num = 6
 
     # save all data after processing by batches
     processed_data = []
