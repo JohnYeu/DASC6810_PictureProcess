@@ -44,7 +44,7 @@ if __name__ == "__main__":
         
 
     ## save results (to csv)
-    results_csv = "rediction_results.csv"
+    results_csv = "pediction_results.csv"
     try:
         with open(results_csv, "w", newline = "", encoding = "utf-8") as csvfile:
             writer = csv.writer(csvfile)
