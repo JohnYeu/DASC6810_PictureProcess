@@ -48,7 +48,7 @@ if __name__ == "__main__":
     batch_size = 1000
 
     # set number of cluster
-    cluster_num = 30
+    cluster_num = 11
 
     # save all data after processing by batches
     processed_data = []
