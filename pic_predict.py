@@ -5,8 +5,9 @@ from sklearn.cluster import KMeans
 from joblib import load
 import os
 import csv
+import json
 
-from pic_process import process_image_by_batch, cluster_names
+from pic_process import process_image_by_batch
 
 ## load models
 def load_models():
@@ -17,6 +18,8 @@ def load_models():
 
 if __name__ == "__main__":
     pic_pca, pic_kmeans = load_models()
+    with open("cluster_names.json", "r") as f:
+        cluster_names = json.load(f)
     
     ## load images path
     pircture_root = "testPicture"
@@ -45,9 +48,9 @@ if __name__ == "__main__":
     try:
         with open(results_csv, "w", newline = "", encoding = "utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Image_Path","Cluster_ID" "Cluster_Name"])
+            writer.writerow(["Image_Path","Cluster_ID","Cluster_Name"])
             for img_path, cluster_id in zip(image_paths, predictions):
-                cluster_name = cluster_names.get(cluster_id)
+                cluster_name = cluster_names.get(str(cluster_id), "Unknown")
                 writer.writerow([img_path, cluster_id, cluster_name])
     except Exception as e:
         print(f"error happened in saving result")
