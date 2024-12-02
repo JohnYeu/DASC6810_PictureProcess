@@ -26,30 +26,33 @@ def process_image_by_batch(img_path, size) :
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  
                     data.append(img.flatten()) 
         yield np.array(data)
-        
 
-if __name__ == "__main__":
-    ## load images path
+
+def get_image_paths_array():
+
+    # Get current directory
     current_dir = os.getcwd()
     pircture_root = os.path.join(current_dir, "pictures-train")
+
+    # Get all image paths
     image_paths = []
     for root, dirs, files in os.walk(pircture_root):
         for file in files:
             if file.lower().endswith(('.jpg')): 
                 image_paths.append(os.path.join(root, file)) 
-
     print(f"Total images found: {len(image_paths)}")
 
-    ## check image path 
     for path in image_paths:
         if not os.path.exists(path):
             print(f"path not exist: {path}")
+
+    return image_paths
+
+# Extract this part as a method, because find_k_value.py needs processed_data
+def generate_images_data(image_paths):
     
     # set picture patch size    
     batch_size = 1000
-
-    # set number of cluster
-    cluster_num = 7
 
     # save all data after processing by batches
     processed_data = []
@@ -58,6 +61,15 @@ if __name__ == "__main__":
     for batch in process_image_by_batch(image_paths, batch_size):
         processed_data.append(batch)
     processed_data = np.vstack(processed_data)
+
+    return processed_data
+        
+
+if __name__ == "__main__":
+
+    image_paths = get_image_paths_array()
+    processed_data = generate_images_data(image_paths)
+    cluster_num = 7
 
     # k-mean clusters
     kmeans = KMeans(n_clusters = cluster_num, random_state = 0)
