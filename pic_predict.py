@@ -6,6 +6,8 @@ from joblib import load
 import os
 import csv
 import json
+from pic_process import get_image_paths_array
+
 
 from pic_process import process_image_by_batch
 
@@ -22,13 +24,7 @@ if __name__ == "__main__":
         cluster_names = json.load(f)
     
     ## load images path
-    current_dir = os.getcwd()
-    picture_root = os.path.join(current_dir, "pictures-test")
-    image_paths = []
-    for root, dirs, files in os.walk(picture_root):
-        for file in files:
-            if file.lower().endswith(('.jpg')): 
-                image_paths.append(os.path.join(root, file)) 
+    image_paths = get_image_paths_array("pictures-test")
                 
     print(f"Total images found: {len(image_paths)}")
     
