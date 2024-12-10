@@ -7,8 +7,6 @@ import os
 from joblib import dump
 import json
 
-
-
         
 ## process image by batches
 # define function for process image by batches
@@ -83,11 +81,35 @@ def define_cluster_names(cluster_type, origin_image_paths, cluster_num):
         cluster_names[cluster] = name_for_this_cluster
     return cluster_names
 
+def plot_cluster_scatter(data, cluster_type, cluster_name_dict):
+    plt.figure(figsize=(16, 12))
+
+    # reduce dimension to 2D
+    pca = PCA(n_components=2)
+    data_2D = pca.fit_transform(data)
+
+    # draw each cluster
+    cluster_id = np.unique(cluster_type)
+    for cluster in cluster_id:
+        cluster_points = data_2D[cluster_type == cluster]
+        cluster_label = cluster_name_dict.get(cluster, f"Cluster {cluster}")
+        plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label = cluster_label, s = 5)
+
+    # draw graph
+    plt.title("K-Means Clustering of Images")
+    plt.xlabel("PCA 1")
+    plt.ylabel("PCA 2")
+    plt.legend(title="Cluster Names", loc="upper right")
+    plt.show()
+
+    return pca
+
+
 if __name__ == "__main__":
 
     image_paths = get_image_paths_array("pictures-train")
     processed_data = generate_images_data(image_paths)
-    cluster_num = 12
+    cluster_num = 7
 
     # k-mean clusters
     kmeans = KMeans(n_clusters = cluster_num, random_state = 0)
@@ -107,26 +129,8 @@ if __name__ == "__main__":
 
     ## data visualization
     # create a graph with size
-    plt.figure(figsize=(16, 12))
-
-    # reduce dimension to 2D
-    pca = PCA(n_components=2)
-    data_2D = pca.fit_transform(processed_data)
-
-    # draw each cluster
-    cluster_id = np.unique(cluster_type)
-    for cluster in cluster_id:
-        cluster_points = data_2D[cluster_type == cluster]
-        cluster_label = cluster_names.get(cluster, f"Cluster {cluster}")
-        plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label = cluster_label, s = 5)
-
-    # draw graph
-    plt.title("K-Means Clustering of Images")
-    plt.xlabel("PCA 1")
-    plt.ylabel("PCA 2")
-    plt.legend(title="Cluster Names", loc="upper right")
-    plt.show()
-
+    pca = plot_cluster_scatter(processed_data, cluster_type, cluster_names)
+    
     ## save model for prediction
     dump(pca, "bio_image_pcaModel.joblib")
     dump(kmeans, "bio_image_kmeansModel.joblib")

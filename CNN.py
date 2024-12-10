@@ -7,7 +7,8 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from sklearn.cluster import KMeans
 from keras.layers import Input
-from pic_process import get_image_paths_array, define_cluster_names
+from pic_process import get_image_paths_array, define_cluster_names, plot_cluster_scatter
+from visualization import plt_heat_map
 
 # Model output would be (7, 7, 512) by defualt
 def create_model_vgg16():
@@ -39,38 +40,29 @@ def extract_features(image_paths, batch_size):
     return np.vstack(all_train_features)
 
 
+if __name__ == "__main__":
+    train_image_paths = get_image_paths_array("pictures-train")
+    test_image_paths = get_image_paths_array("pictures-test")
+    vgg16_model = create_model_vgg16()
+    batch_size = 600
+    cluster_num = 7
 
-train_image_paths = get_image_paths_array("pictures-train")
-test_image_paths = get_image_paths_array("pictures-test")
-vgg16_model = create_model_vgg16()
-batch_size = 1000
-cluster_num = 23
+    all_train_features = extract_features(train_image_paths, batch_size)
+    all_test_features = extract_features(test_image_paths, batch_size)
 
-all_train_features = extract_features(train_image_paths, batch_size)
-all_test_features = extract_features(test_image_paths, batch_size)
+    kmeans = KMeans(n_clusters = cluster_num, random_state = 0)
+    cluster_type = kmeans.fit_predict(all_train_features)
+    cluster_names = define_cluster_names(cluster_type, train_image_paths, cluster_num)
 
-kmeans = KMeans(n_clusters = cluster_num, random_state = 0)
-cluster_type = kmeans.fit_predict(all_train_features)
-cluster_names = define_cluster_names(cluster_type, train_image_paths, cluster_num)
+    predictions = kmeans.predict(all_test_features)
 
-predictions = kmeans.predict(all_test_features)
+    actual_plant_names = []
+    predicted_cluster_names = []
 
-actual_plant_names = []
-predicted_cluster_names = []
-
-for img_path, prediction_cluster in zip(test_image_paths, predictions):
-    actual_plant_names.append(os.path.basename(os.path.dirname(img_path)))
-    predicted_cluster_names.append(cluster_names[prediction_cluster])
-
-
-prediction_correct_count = 0
-for actual_lant, prediction_plant in zip(actual_plant_names, predicted_cluster_names):
-    if actual_lant == prediction_plant:
-        prediction_correct_count += 1
-
-print(actual_plant_names)
-print(predicted_cluster_names)
-print("--------------------------------------------------")
-print(f"Prediction Accuracy: {prediction_correct_count / len(test_image_paths)}")
-print("--------------------------------------------------")
+    for img_path, prediction_cluster in zip(test_image_paths, predictions):
+        actual_plant_names.append(os.path.basename(os.path.dirname(img_path)))
+        predicted_cluster_names.append(cluster_names[prediction_cluster])
+    
+    plot_cluster_scatter(all_train_features, cluster_type, cluster_names)
+    plt_heat_map(actual_plant_names, predicted_cluster_names)
 
